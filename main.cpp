@@ -85,7 +85,7 @@ public:
             u[i] = p[i] = r[i] = b[i] - temp[i];
         }
 
-        int MAX_ITER = 1000;
+        int MAX_ITER = 100000;
         int iter = 0;
         double alpha = 0, beta = 0;
         
@@ -1349,9 +1349,10 @@ int main(int argc, char *argv[])
     c = atof(argv[5]);
     Mat.resize(3*ij2k(2*m1/3, 2*m2/3) + 3);
 
-    tau = T / n;
-    h1 = X1 / m1;
-    h2 = X2 / m2;
+    tau = ((double)T) / n;
+    h1 = ((double)X1) / m1;
+    h2 = ((double)X2) / m2;
+
     Mat.fill_matrix();
     
     return 0;
