@@ -8,11 +8,18 @@ using namespace std;
 const double EPS = 1e-16;
 
 int m1, m2, n;
-double mu;
-int T=1, X1=1, X2=1;
+double mu, Rho;
+const int T=1, X1=1, X2=1;
 double tau, h1, h2;
 
-
+int ij2k (int i, int j);
+void k2ij(int k, int& i, int& j);
+double u1(int i, int j, int t);
+double u2(int i, int j, int t);
+double rho(int i, int j, int t);
+double F1 (int i, int j, int t);
+double F2 (int i, int j, int t);
+double F3 (int i, int j, int t);
 /*
     Область
                  ___________
@@ -24,6 +31,12 @@ double tau, h1, h2;
     |___|___|___|___|___|___|___|___|___|
                     m2,j
 */
+
+/*
+    VEC = |____G____|____V1____|____V2_____| - массив (так как СЛУ одна)
+
+*/
+
 class Matrix
 {
 public:
@@ -73,11 +86,13 @@ public:
         }
 
         int MAX_ITER = 1000;
+        int iter = 0;
         double alpha = 0, beta = 0;
         
         
         for (int tt = 0; tt < MAX_ITER ; tt++)
         {
+            iter++;
             sparse_matr_prod_vec(p, temp);
             alpha = scal_prod(r, z_a) / scal_prod(temp, z_a);
             
@@ -112,7 +127,81 @@ public:
         }
 
 
+        sparse_matr_prod_vec (d, temp);
+    
+        for (int i = 0; i < size; i++)
+            temp[i] -= b[i];
+        double norm1 = sqrt (scal_prod(temp, temp));
+
+        printf ("\tResidual Solve Equations: %e\n", norm1);
+        printf ("\tITERATIONS: %d\n", iter);
+
+
         return d;
+    }
+
+
+    void fill_matrix()
+    {
+        int K = ij2k(m1/3*2, m2/3*2);
+        vector<double> VEC1(3 * K);
+        vector<double> VEC2(3 * K);
+        for (int i = 0; i < K; i++)
+        {
+            int i1, j1;
+            k2ij(i, i1, j1);
+            VEC1[i] = rho(i1, j1, 0);
+            VEC1[i + K] = u1(i1, j1, 0);
+            VEC1[i + 2*K] = u2(i1, j1, 0);
+            
+        }
+
+        int num_eq = 0; 
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////// 1-ое уравнение
+        for (int i = 1; i < m1/3; i++)
+        {
+            for (int j = 1; j < m2; j++)
+            {
+                Mat[num_eq].clear();
+                Ind[num_eq].clear();
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./tau
+                                        + abs( VEC1[K + ij2k(i, j)] ) / h1
+                                        + abs( VEC1[2*K + ij2k(i, j)] ) / h2
+                );
+                Ind[num_eq].push_back( ij2k(i, j) );
+                //////////////////////////////////// G_m1_m2
+
+
+                
+                
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -( abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2 * h2)
+                );
+                Ind[num_eq].push_back( ij2k(i, j-1) );
+                ////////////////////////////////////G_m1_m2-1
+
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -( abs( VEC1[K + ij2k(i, j)] ) + VEC1[K + ij2k(i, j)]) / (2 * h1)
+                );
+                Ind[num_eq].push_back( ij2k(i-1, j) );
+                ////////////////////////////////////G_m1-1_m2
+
+
+
+            }
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     }
 
 private:
@@ -174,10 +263,37 @@ double rho(int i, int j, int t)//t-номер временного слоя, ij-
 
 double F1 (int i, int j, int t)
 {
-    return 1 + u1(i, j, t) * 1. / rho(i, j, t) * exp(t * tau) * (sin(2 * M_PI * j * h2) + 1.5) * (-2 * M_PI * sin(2 * M_PI * h1 * i))
+    return 1 
+    + u1(i, j, t) * 1. / rho(i, j, t) * exp(t * tau) * (sin(2 * M_PI * j * h2) + 1.5) * (-2 * M_PI * sin(2 * M_PI * h1 * i))
     + u2(i, j, t) * 1. / rho(i, j, t) * exp(t * tau) * (cos(2 * M_PI * i * h1) + 1.5) * (2 * M_PI * cos(2 * M_PI * h2 * j))
     + sin (2 * M_PI * h2 * j) * cos(2 * M_PI * h1 * i) * 2 * M_PI * exp(t * tau)
     + sin (2 * M_PI * h1 * i) * cos(2 * M_PI * h2 * j) * 2 * M_PI * exp(-t * tau);
+}
+
+double F2 (int i, int j, int t)
+{
+    return u1(i, j, t)
+            + u1(i,j,t) * exp(t * tau) * sin(2 * M_PI * h2 * j) * cos (2 * M_PI * h1 * i) * 2 * M_PI
+            + u2(i,j,t) * exp(t * tau) * sin(2 * M_PI * h1 * i) * cos (2 * M_PI * h2 * j) * 2 * M_PI
+            - mu/Rho * (
+                            4./3. * (- 4 * M_PI * M_PI * u1(i,j,t)) 
+                            + (-4 * M_PI * M_PI * u1(i,j,t))
+                            + 1/3. * 4 * M_PI * M_PI * cos(2 * M_PI * h1 * i) * cos(2 * M_PI * h2 * j) * exp(-t * tau)
+                        );
+
+}
+
+double F3 (int i, int j, int t)
+{
+    return u2(i, j, t)
+            + u1(i,j,t) * exp(-t * tau) * sin(2 * M_PI * h2 * j) * cos (2 * M_PI * h1 * i) * 2 * M_PI
+            + u2(i,j,t) * exp(-t * tau) * sin(2 * M_PI * h1 * i) * cos (2 * M_PI * h2 * j) * 2 * M_PI
+            - mu/Rho * (
+                            4./3. * (- 4 * M_PI * M_PI * u2(i,j,t)) 
+                            + (-4 * M_PI * M_PI * u2(i,j,t))
+                            + 1/3. * 4 * M_PI * M_PI * cos(2 * M_PI * h1 * i) * cos(2 * M_PI * h2 * j) * exp(t * tau)
+                        );
+
 }
 
 
@@ -216,7 +332,7 @@ void k2ij(int k, int& i, int& j)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5 )
+    if (argc != 6)
     {
         cout << "wrong argc\n";
         return -1;
@@ -225,6 +341,7 @@ int main(int argc, char *argv[])
     // m2 = atoi(argv[2]);
     // n = atoi(argv[3]);
     // mu = atof(argv[4]);
+    // Rho = atof(argv[5]);
     // Mat.resize(ij2k(2*m1/3, 2*m2/3));
 
     Mat.resize(5);
