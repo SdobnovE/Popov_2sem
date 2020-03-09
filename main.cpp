@@ -8,7 +8,7 @@ using namespace std;
 const double EPS = 1e-16;
 
 int m1, m2, n;
-double mu, Rho;
+double mu, c;
 const int T=1, X1=1, X2=1;
 double tau, h1, h2;
 
@@ -155,9 +155,14 @@ public:
             VEC1[i + 2*K] = u2(i1, j1, 0);
             
         }
-
+        int t = 0;
         int num_eq = 0; 
-
+        
+        double mu_wave = abs(VEC1[0]);
+        for (int i = 0; i < K; i++)
+            mu_wave = max (abs(VEC1[i]), mu_wave);
+        mu_wave *= mu; 
+        
         ///////////////////////////////////////////////////////////////////////////////////////////////// 1-ое уравнение
         for (int i = 1; i < m1/3; i++)
         {
@@ -176,15 +181,13 @@ public:
                 //////////////////////////////////// G_m1_m2
 
 
-                
-                
+                                
                 ////////////////////////////////////
                 Mat[num_eq].push_back(
                                         -( abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2 * h2)
                 );
                 Ind[num_eq].push_back( ij2k(i, j-1) );
                 ////////////////////////////////////G_m1_m2-1
-
 
 
 
@@ -197,9 +200,378 @@ public:
 
 
 
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (VEC1[K + ij2k(i, j)] - abs( VEC1[K + ij2k(i, j)] )) / (2 * h1)
+                );
+                Ind[num_eq].push_back( ij2k(i+1, j) );
+                ////////////////////////////////////G_m1+1_m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (VEC1[2*K + ij2k(i, j)] - abs( VEC1[2*K + ij2k(i, j)] )) / (2 * h2)
+                );
+                Ind[num_eq].push_back( ij2k(i, j+1) );
+                ////////////////////////////////////G_m1_m2+1
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./ (2*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i+1, j) );
+                //////////////////////////////////// V1_m1+1,m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -1./ (2*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i-1, j) );
+                //////////////////////////////////// V1_m1-1,m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./ (2*h2)
+                );
+                Ind[num_eq].push_back( 2*K + ij2k(i, j+1) );
+                //////////////////////////////////// V2_m1,m2+1
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -1./ (2*h2)
+                );
+                Ind[num_eq].push_back( 2*K + ij2k(i, j-1) );
+                //////////////////////////////////// V2_m1,m2-1
+
+                b[num_eq] = VEC1[ij2k(i, j)] / tau + F1(i,j,t);
+                num_eq++;
+
+
+            }
+        }
+
+        for (int i = 0; i < m1/3; i++)
+        {
+            for (int j = 1; j < m2/3; j++)
+            {
+                i += m1/3;
+                j += m2/3;
+
+                Mat[num_eq].clear();
+                Ind[num_eq].clear();
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./tau
+                                        + abs( VEC1[K + ij2k(i, j)] ) / h1
+                                        + abs( VEC1[2*K + ij2k(i, j)] ) / h2
+                );
+                Ind[num_eq].push_back( ij2k(i, j) );
+                //////////////////////////////////// G_m1_m2
+
+
+                                
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -( abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2 * h2)
+                );
+                Ind[num_eq].push_back( ij2k(i, j-1) );
+                ////////////////////////////////////G_m1_m2-1
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -( abs( VEC1[K + ij2k(i, j)] ) + VEC1[K + ij2k(i, j)]) / (2 * h1)
+                );
+                Ind[num_eq].push_back( ij2k(i-1, j) );
+                ////////////////////////////////////G_m1-1_m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (VEC1[K + ij2k(i, j)] - abs( VEC1[K + ij2k(i, j)] )) / (2 * h1)
+                );
+                Ind[num_eq].push_back( ij2k(i+1, j) );
+                ////////////////////////////////////G_m1+1_m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (VEC1[2*K + ij2k(i, j)] - abs( VEC1[2*K + ij2k(i, j)] )) / (2 * h2)
+                );
+                Ind[num_eq].push_back( ij2k(i, j+1) );
+                ////////////////////////////////////G_m1_m2+1
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./ (2*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i+1, j) );
+                //////////////////////////////////// V1_m1+1,m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -1./ (2*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i-1, j) );
+                //////////////////////////////////// V1_m1-1,m2
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./ (2*h2)
+                );
+                Ind[num_eq].push_back( 2*K + ij2k(i, j+1) );
+                //////////////////////////////////// V2_m1,m2+1
+
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -1./ (2*h2)
+                );
+                Ind[num_eq].push_back( 2*K + ij2k(i, j-1) );
+                //////////////////////////////////// V2_m1,m2-1
+
+                b[num_eq] = VEC1[ij2k(i, j)] / tau  + F1(i,j,t);
+                num_eq++;
+                i -= m1/3;
+                j -= m2/3;
             }
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+        
+        
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////// 3-е уравнение
+        for (int i = 1; i < m1/3; i++)
+        {
+            for (int j = 1; j < m2; j++)
+            {
+                Mat[num_eq].clear();
+                Ind[num_eq].clear();
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./tau
+                                        + abs( VEC1[K + ij2k(i, j)] ) / h1
+                                        + abs( VEC1[2*K + ij2k(i, j)] ) / h2
+                                        + mu_wave * (4./3 * 2/(h1 * h1) + 2/(h2 * h2))
+                );
+                Ind[num_eq].push_back( K + ij2k(i, j) );
+                //////////////////////////////////// V1_m1_m2
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -(abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2*h2)
+                                        - mu_wave / (h2*h2)
+                );
+                Ind[num_eq].push_back( K + ij2k(i, j-1) );
+                //////////////////////////////////// V1_m1_m2-1
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -(abs( VEC1[K + ij2k(i, j)] ) + VEC1[K + ij2k(i, j)]) / (2*h1)
+                                        - mu_wave * 4./3. * 1./(h1*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i-1, j) );
+                //////////////////////////////////// V1_m1-1_m2
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (-abs( VEC1[K + ij2k(i, j)] ) + VEC1[K + ij2k(i, j)]) / (2*h1)
+                                        - mu_wave * 4./3. * 1./(h1*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i+1, j) );
+                //////////////////////////////////// V1_m1+1_m2
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (-abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2*h2)
+                                        - mu_wave / (h2*h2)
+                );
+                Ind[num_eq].push_back( K + ij2k(i, j+1) );
+                //////////////////////////////////// V1_m1_m2+1
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        c
+                );
+                Ind[num_eq].push_back( ij2k(i+1, j) );
+                //////////////////////////////////// G_m1+1_m2
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -c
+                );
+                Ind[num_eq].push_back( ij2k(i-1, j) );
+                //////////////////////////////////// G_m1-1_m2
+
+
+                b[num_eq] = VEC1[ij2k(i, j)] / tau 
+                            + F2(i,j,t)
+                            - (mu_wave - mu * exp( -VEC1[ij2k(i, j)] ) )
+                                    * (
+                                        4./3. * ( VEC1[K + ij2k(i-1, j)] - 2 * VEC1[K + ij2k(i, j)] + VEC1[K + ij2k(i+1, j)]) / (h1*h1)
+                                        + ( VEC1[K + ij2k(i-1, j)] - 2 * VEC1[K + ij2k(i, j)] + VEC1[K + ij2k(i+1, j)]) / (h1*h1)
+                                      )
+                            + mu/3. * exp( -VEC1[ij2k(i, j)] ) 
+                                * ( VEC1[2*K + ij2k(i-1, j-1)] + VEC1[2*K + ij2k(i+1, j+1)] - VEC1[2*K + ij2k(i-1, j+1)] - VEC1[2*K + ij2k(i+1, j-1)] )
+                                / (4 * h1 *h2)
+                            ;
+
+                num_eq++;
+
+
+            }
+        }
+
+        for (int i = 0; i < m1/3; i++)
+        {
+            for (int j = 1; j < m2/3; j++)
+            {
+                i += m1/3;
+                j += m2/3;
+
+                Mat[num_eq].clear();
+                Ind[num_eq].clear();
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./tau
+                                        + abs( VEC1[K + ij2k(i, j)] ) / h1
+                                        + abs( VEC1[2*K + ij2k(i, j)] ) / h2
+                                        + mu_wave * (4./3 * 2/(h1 * h1) + 2/(h2 * h2))
+                );
+                Ind[num_eq].push_back( K + ij2k(i, j) );
+                //////////////////////////////////// V1_m1_m2
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -(abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2*h2)
+                                        - mu_wave / (h2*h2)
+                );
+                Ind[num_eq].push_back( K + ij2k(i, j-1) );
+                //////////////////////////////////// V1_m1_m2-1
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -(abs( VEC1[K + ij2k(i, j)] ) + VEC1[K + ij2k(i, j)]) / (2*h1)
+                                        - mu_wave * 4./3. * 1./(h1*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i-1, j) );
+                //////////////////////////////////// V1_m1-1_m2
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (-abs( VEC1[K + ij2k(i, j)] ) + VEC1[K + ij2k(i, j)]) / (2*h1)
+                                        - mu_wave * 4./3. * 1./(h1*h1)
+                );
+                Ind[num_eq].push_back( K + ij2k(i+1, j) );
+                //////////////////////////////////// V1_m1+1_m2
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        (-abs( VEC1[2*K + ij2k(i, j)] ) + VEC1[2*K + ij2k(i, j)]) / (2*h2)
+                                        - mu_wave / (h2*h2)
+                );
+                Ind[num_eq].push_back( K + ij2k(i, j+1) );
+                //////////////////////////////////// V1_m1_m2+1
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        c
+                );
+                Ind[num_eq].push_back( ij2k(i+1, j) );
+                //////////////////////////////////// G_m1+1_m2
+
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -c
+                );
+                Ind[num_eq].push_back( ij2k(i-1, j) );
+                //////////////////////////////////// G_m1-1_m2
+
+
+                b[num_eq] = VEC1[ij2k(i, j)] / tau 
+                            + F2(i,j,t)
+                            - (mu_wave - mu * exp( -VEC1[ij2k(i, j)] ) )
+                                    * (
+                                        4./3. * ( VEC1[K + ij2k(i-1, j)] - 2 * VEC1[K + ij2k(i, j)] + VEC1[K + ij2k(i+1, j)]) / (h1*h1)
+                                        + ( VEC1[K + ij2k(i-1, j)] - 2 * VEC1[K + ij2k(i, j)] + VEC1[K + ij2k(i+1, j)]) / (h1*h1)
+                                      )
+                            + mu/3. * exp( -VEC1[ij2k(i, j)] ) 
+                                * ( VEC1[2*K + ij2k(i-1, j-1)] + VEC1[2*K + ij2k(i+1, j+1)] - VEC1[2*K + ij2k(i-1, j+1)] - VEC1[2*K + ij2k(i+1, j-1)] )
+                                / (4 * h1 *h2)
+                            ;
+
+                num_eq++;
+                i -= m1/3;
+                j -= m2/3;
+            }
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////////// 3-е уравнение
+        for (int i = 1; i < m1/3; i++)
+        {
+            for (int j = 1; j < m2; j++)
+            {
+                Mat[num_eq].clear();
+                Ind[num_eq].clear();
+                
+
+                num_eq++;
+
+
+            }
+        }
+
+        for (int i = 0; i < m1/3; i++)
+        {
+            for (int j = 1; j < m2/3; j++)
+            {
+                i += m1/3;
+                j += m2/3;
+
+
+                num_eq++;
+                i -= m1/3;
+                j -= m2/3;
+            }
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 
     }
@@ -275,11 +647,13 @@ double F2 (int i, int j, int t)
     return u1(i, j, t)
             + u1(i,j,t) * exp(t * tau) * sin(2 * M_PI * h2 * j) * cos (2 * M_PI * h1 * i) * 2 * M_PI
             + u2(i,j,t) * exp(t * tau) * sin(2 * M_PI * h1 * i) * cos (2 * M_PI * h2 * j) * 2 * M_PI
-            - mu/Rho * (
+            - mu/rho(i,j,t) * (
                             4./3. * (- 4 * M_PI * M_PI * u1(i,j,t)) 
                             + (-4 * M_PI * M_PI * u1(i,j,t))
                             + 1/3. * 4 * M_PI * M_PI * cos(2 * M_PI * h1 * i) * cos(2 * M_PI * h2 * j) * exp(-t * tau)
-                        );
+                        )
+            + c * exp(t) * (sin(2*M_PI * h2 * j) + 1.5) * (-sin(2*M_PI * h1 * i) * 2 * M_PI) * 1./rho(i,j,t);
+            ;
 
 }
 
@@ -288,11 +662,13 @@ double F3 (int i, int j, int t)
     return u2(i, j, t)
             + u1(i,j,t) * exp(-t * tau) * sin(2 * M_PI * h2 * j) * cos (2 * M_PI * h1 * i) * 2 * M_PI
             + u2(i,j,t) * exp(-t * tau) * sin(2 * M_PI * h1 * i) * cos (2 * M_PI * h2 * j) * 2 * M_PI
-            - mu/Rho * (
+            - mu/rho(i,j,t) * (
                             4./3. * (- 4 * M_PI * M_PI * u2(i,j,t)) 
                             + (-4 * M_PI * M_PI * u2(i,j,t))
                             + 1/3. * 4 * M_PI * M_PI * cos(2 * M_PI * h1 * i) * cos(2 * M_PI * h2 * j) * exp(t * tau)
-                        );
+                        )
+            + c * exp(t) * (cos(2*M_PI * h1 * i) + 1.5) * (cos(2*M_PI * h2 * j) * 2 * M_PI) * 1./rho(i,j,t)
+            ;
 
 }
 
@@ -337,52 +713,14 @@ int main(int argc, char *argv[])
         cout << "wrong argc\n";
         return -1;
     }
-    // m1 = atoi(argv[1]);
-    // m2 = atoi(argv[2]);
-    // n = atoi(argv[3]);
-    // mu = atof(argv[4]);
-    // Rho = atof(argv[5]);
-    // Mat.resize(ij2k(2*m1/3, 2*m2/3));
 
-    Mat.resize(5);
-    Mat.Mat[0].push_back(11);
-    Mat.Mat[0].push_back(3);
+    m1 = atoi(argv[1]);
+    m2 = atoi(argv[2]);
+    n = atoi(argv[3]);
+    mu = atof(argv[4]);
+    c = atof(argv[5]);
+    Mat.resize(3*ij2k(2*m1/3, 2*m2/3));
 
-    Mat.Mat[1].push_back(1);
     
-    Mat.Mat[2].push_back(1);
-    
-    Mat.Mat[3].push_back(112);
-    Mat.Mat[3].push_back(2);
-
-    Mat.Mat[4].push_back(2);
-    Mat.Mat[4].push_back(1);
-
-
-
-
-    Mat.Ind[0].push_back(0);
-    Mat.Ind[0].push_back(2);
-
-    Mat.Ind[1].push_back(1);
-    
-    Mat.Ind[2].push_back(2);
-    
-    Mat.Ind[3].push_back(0);
-    Mat.Ind[3].push_back(3);
-    
-    Mat.Ind[4].push_back(2);
-    Mat.Ind[4].push_back(4);
-
-    Mat.b[0] = 13;
-    Mat.b[1] = 14;
-    Mat.b[2] = 13;
-    Mat.b[3] = 14;
-    Mat.b[4] = 13;
-
-    vector<double> x = Mat.solveEQU();
-    
-    for (auto i : x)
-        cout << i << endl;
     return 0;
 }
