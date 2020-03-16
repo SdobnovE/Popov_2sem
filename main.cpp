@@ -275,6 +275,108 @@ public:
         return d;
     }
 
+    void fill_string(int type, int num_eq, int part)
+    {
+        if (part == 1)
+        {
+            switch (type)
+            {
+            case 0:
+                Mat[num_eq].clear();
+                Ind[num_eq].clear();
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./tau
+                );
+                Ind[num_eq].push_back( ij2k(0, j) );
+                //////////////////////////////////// G_0_m2
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        1./h1
+                );
+                Ind[num_eq].push_back(K + ij2k(1, j) );
+                //////////////////////////////////// V1_1_m2
+
+                ////////////////////////////////////
+                Mat[num_eq].push_back(
+                                        -1./h1
+                );
+                Ind[num_eq].push_back(K + ij2k(0, j) );
+                //////////////////////////////////// V1_0_m2
+
+                b[num_eq] = VEC1[ij2k(0, j)] * 1./tau + F1(0,j,t);
+                break;
+            
+            default:
+                break;
+            }
+        }   
+    }
+
+    void fill_matrix_another()
+    {
+        int K = ij2k(m1/3*2, m2/3*2) + 1;
+        vector<double> VEC1(3 * K);
+        vector<double> VEC2(3 * K);
+
+        for (int i = 0; i < K; i++)
+        {
+            int i1, j1;
+            k2ij(i, i1, j1);
+            
+            VEC1[i] = log(rho(i1, j1, 0));
+            // cout << i1 << " " << j1 << log(rho(i1, j1, 0)) << endl;
+            VEC1[i + K] = u1(i1, j1, 0);
+            VEC1[i + 2*K] = u2(i1, j1, 0);
+            
+        }
+
+        // for (auto i: VEC1)
+        //     cout << "\t" << i << endl;
+
+        for (int i = 0; i < K; i++)
+        {
+            int i1, j1;
+            k2ij(i, i1, j1);
+            VEC2[i] = log(rho(i1, j1, 1));
+            VEC2[i + K] = u1(i1, j1, 1);
+            VEC2[i + 2*K] = u2(i1, j1, 1);
+            
+        }
+
+        int t = 1;
+
+        for (int k = 0; k < K; k++)
+        {
+            int i1, j1;
+            k2ij(k, i1, j1);
+            int type = 0;
+            
+            if (i1 == 0)
+                type = 0;//нижняя крышка;
+            else if (j1 == 0)
+                type = 1; //левая дальняя крышка
+            else if (j1 == m2)
+                type = 2; //правая дальняя крышка
+            else if (i1 == m1/3 && (j1 <= m2/3 || j1 >= 2*m2/3))
+                type = 3;//нижние верхние крышки
+            else if (i1 > m1/3 && j1 == m2/3)
+                type = 4; // левая ближняя крышка
+            else if (i1 > m1/3 && j1 == 2*m2/3)
+                type = 5; // правая ближжняя крышка
+            else if (i1 == 2*m1/3)
+                type = 6;//верхняя крышка
+            else
+                type = 7;//внутренняя точка
+
+            fill_string(type, k, 1);
+        }
+
+    }
+    
+
 
     void fill_matrix()
     {
