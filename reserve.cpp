@@ -5,11 +5,11 @@
 #include <stdlib.h>
 using namespace std;
 
-const double EPS = 1e-16;
+const double EPS = 1e-8;
 string norm = "L2";
 int m1, m2, n;
 double mu, c;
-const int T=1, X1=3, X2=3;
+const int T=3, X1=3, X2=3;
 double tau, h1, h2;
 
 int ij2k (int i, int j);
@@ -213,7 +213,7 @@ public:
             u[i] = p[i] = r[i] = b[i] - temp[i];
         }
 
-        int MAX_ITER = 100;
+        int MAX_ITER = 2000;
         int iter = 0;
         double alpha = 0, beta = 0;
         double resid = -1;
@@ -272,7 +272,8 @@ public:
         for (int i = 0; i < size; i++)
             temp[i] -= b[i];
         double norm1 = sqrt (scal_prod(temp, temp));
-
+        resid = sqrt(scal_prod(r,r));
+        // printf ("\tresid: %e\n", resid);
         // printf ("\tResidual Solve Equations: %e\n", norm1);
         // printf ("\tITERATIONS: %d\n", iter);
         
@@ -798,6 +799,8 @@ public:
 
         for (int t = 1; t < n; t++)
         {
+            
+
             for (int k = 0; k < K; k++)
             {
                 int i1, j1;
@@ -821,17 +824,45 @@ public:
                 else
                     type = 7;//внутренняя точка
                 
+                
+
+                // fill_string(type, k, 1, i1, j1, t, VEC1);
+                
+
+                Mat[k].clear();
+                Ind[k].clear();
+                Mat[k].push_back(1);
+                Ind[k].push_back(k);
+                b[k] = log(rho(i1, j1, t));
 
 
-                fill_string(type, k, 1, i1, j1, t, VEC1);
-                fill_string(type, k + K, 2, i1, j1, t, VEC1);
-                fill_string(type, k + 2*K, 3, i1, j1, t, VEC1);
+                // Mat[K + k].clear();
+                // Ind[K + k].clear();
+                // Mat[K + k].push_back(1);
+                // Ind[K + k].push_back(K+k);
+                // b[K + k] = u1(i1, j1, t);
+                fill_string(type, K + k, 2, i1, j1, t, VEC1);
+
+                // Mat[2*K + k].clear();
+                // Ind[2*K + k].clear();
+                // Mat[2*K + k].push_back(1);
+                // Ind[2*K + k].push_back(2*K+k);
+                // b[2*K + k] = u2(i1, j1, t);
+                fill_string(type, 2*K + k, 3, i1, j1, t, VEC1);
+
+                // fill_string(type, k, 1, i1, j1, t, VEC1);
+                // fill_string(type, k + K, 2, i1, j1, t, VEC1);
+                // fill_string(type, k + 2*K, 3, i1, j1, t, VEC1);
             }
+            
 
             auto res = solveEQU();
             
+            
             for (int i = 0; i < res.size(); i++)
                 VEC1[i] = res[i];
+
+            
 
         }
 
@@ -846,9 +877,25 @@ public:
             
         }
 
-        
+        // for (int i = 0; i < VEC1.size();i++)
+        // {
+        //     if(i % K == 0)
+        //         cout << endl;
+        //     cout << VEC1[i] << " " << VEC2[i] << " " << (i%K)%(m2+1) <<   endl;
+        // }
+        norm = "L2";
         count_residual(VEC1, VEC2, resid_G, resid_V1, resid_V2);
         printf("%e %e %e\n", resid_G, resid_V1, resid_V2);
+        
+        // norm = "L2";
+        // count_residual(VEC1, VEC2, resid_G, resid_V1, resid_V2);
+        // printf("%e %e %e ", resid_G, resid_V1, resid_V2);
+
+        // norm = "W";
+        // count_residual(VEC1, VEC2, resid_G, resid_V1, resid_V2);
+        // printf("%e %e %e\n", resid_G, resid_V1, resid_V2);
+        
+        
         // FILE *f;
         // f = fopen("out", "w");
         // for (auto i : Ind)
@@ -874,7 +921,7 @@ public:
 
         if (norm == "C")
             {
-                resid_V2 = resid_V1 = resid_G = 0;
+                resid_V2 = resid_V1 = resid_G = -fabs(VEC1[0]);
                 for (int i = 0; i < K; i++)
                 {
                     if (fabs (VEC1[i] - VEC2[i]) > resid_G)
@@ -897,7 +944,7 @@ public:
             if (norm == "L2")
             {
                 resid_V2 = resid_V1 = resid_G = 0;
-                for(int k = 0; k < size; k++)
+                for(int k = 0; k < K; k++)
                 {
                     int i1, j1;
                     k2ij(k, i1, j1);
@@ -919,6 +966,7 @@ public:
                         type = 6;//верхняя крышка
                     else
                         type = 7;//внутренняя точка
+                    
                     if (type == 7)
                     {
                         resid_G += (VEC1[k] - VEC2[k]) * (VEC1[k] - VEC2[k]);
@@ -948,7 +996,7 @@ public:
                 resid_V2 = resid_V1 = resid_G = 0;
                 double t_G = 0., t_V1 = 0, t_V2 = 0;
 
-                for(int k = 0; k < size; k++)
+                for(int k = 0; k < K; k++)
                 {
                     int i1, j1;
                     k2ij(k, i1, j1);
@@ -1106,6 +1154,93 @@ private:
 Matrix Mat(1);
 
 
+// d
+
+
+double dg_dt(int i, int j, int t)//+
+{
+    return 1;
+}
+
+double dg_dx1(int i, int j, int t)//+
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return (1./ rho(i,j,t)) * 2 * M_PI * (-sin(2*M_PI * x1)) * (sin(2*M_PI*x2) + 3./2.) * exp(tt);
+}
+
+double dg_dx2(int i, int j, int t)//+
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return (1./ rho(i,j,t)) * 2 * M_PI * (cos(2*M_PI * x1) + 3./2.) * (cos(2*M_PI*x2)) * exp(tt);
+}
+
+double du1_dx1(int i, int j, int t)
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return 2* M_PI * cos(2*M_PI*x1) * sin(2*M_PI*x2) * exp(tt);
+}
+
+double du1_dx2(int i, int j, int t)
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return 2* M_PI * sin(2*M_PI*x1) * cos(2*M_PI*x2) * exp(tt);
+}
+
+double du2_dx1(int i, int j, int t)
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return 2* M_PI * cos(2*M_PI*x1) * sin(2*M_PI*x2) * exp(-tt);
+}
+
+double du2_dx2(int i, int j, int t)
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return 2* M_PI * sin(2*M_PI*x1) * cos(2*M_PI*x2) * exp(-tt);
+}
+
+double du1_dt(int i, int j, int t)
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return u1(i,j,t);
+}
+
+
+double du2_dt(int i, int j, int t)
+{
+    double x1 = i * h1;
+    double x2 = j * h2;
+    double tt = t * tau;
+
+    return -u2(i,j,t);
+}
+
+
+
+
+
+
+
 double u1(int i, int j, int t)//t-номер временного слоя, ij-номера координат на сетке
 {
     double x1 = i * h1;
@@ -1138,94 +1273,14 @@ double rho(int i, int j, int t)//t-номер временного слоя, ij-
     return (cos(2 * M_PI * x1) + 3./2.) 
          * (sin(2 * M_PI * x2) + 3./2.)
          * exp(tt);
-    // return (cos (i * h1) + 2) 
-    //         * (sin (j * h2) + 2)
-    //         * exp(t * tau);
-}
-
-double dg_dt(int i, int j, int t)
-{
-    return 1;
-}
-
-double dg_dx1(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return (1./ rho(i,j,t)) * 2 * M_PI * (-sin(2*M_PI * x1)) * (sin(2*M_PI*x2) + 3./2.) * exp(tt);
-}
-
-double dg_dx2(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return (1./ rho(i,j,t)) * 2 * M_PI * (cos(2*M_PI * x1) + 3./2.) * (cos(2*M_PI*x2)) * exp(tt);
-}
-
-double du1_dx1(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return 2* M_PI * cos(2*M_PI*x1) * sin(2*M_PI*x2) * exp(tt);
-}
-
-double du1_dx2(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return 2* M_PI * sin(2*M_PI*x1) * cos(2*M_PI*x2) * exp(tt);
-}
-
-double du2_dx1(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return 2* M_PI * cos(2*M_PI*x1) * sin(2*M_PI*x2) * exp(-tt);
-}
-
-double du2_dx2(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return 2* M_PI * sin(2*M_PI*x1) * cos(2*M_PI*x2) * exp(-tt);
-}
-
-double du1_dt(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return u1(i,j,t);
-}
-
-
-double du2_dt(int i, int j, int t)
-{
-    double x1 = i * h1;
-    double x2 = i * h2;
-    double tt = t * tau;
-
-    return -u2(i,j,t);
+    
 }
 
 
 double F1 (int i, int j, int t)
 {
     double x1 = i * h1;
-    double x2 = i * h2;
+    double x2 = j * h2;
     double tt = t * tau;
     
     return dg_dt(i,j,t) 
@@ -1240,7 +1295,7 @@ double F1 (int i, int j, int t)
 double F2 (int i, int j, int t)
 {
     double x1 = i * h1;
-    double x2 = i * h2;
+    double x2 = j * h2;
     double tt = t * tau;
 
 
@@ -1248,7 +1303,7 @@ double F2 (int i, int j, int t)
             + u1(i,j,t) * du1_dx1(i,j,t)
             + u2(i,j,t) * du1_dx2(i,j,t)
             + c * dg_dx1(i,j,t)
-            - mu / rho(i,j,t) * (4./3.*(-4 * M_PI * M_PI * u1(i,j,t)) 
+            - (mu / rho(i,j,t)) * (4./3.*(-4 * M_PI * M_PI * u1(i,j,t)) 
                                             + (-4*M_PI*M_PI * u1(i,j,t)) 
                                             + 1./3. * cos(2*M_PI*x1) * cos(2*M_PI*x2) * (4*M_PI*M_PI) * exp(-tt)
                                 )
@@ -1262,7 +1317,7 @@ double F2 (int i, int j, int t)
 double F3 (int i, int j, int t)
 {
     double x1 = i * h1;
-    double x2 = i * h2;
+    double x2 = j * h2;
     double tt = t * tau;
 
 
@@ -1315,6 +1370,7 @@ void k2ij(int k, int& i, int& j)
     
 }
 
+
 int main(int argc, char *argv[])
 {
     if (argc != 7)
@@ -1335,11 +1391,8 @@ int main(int argc, char *argv[])
     h1 = static_cast<double>(X1) / m1;
     h2 = static_cast<double>(X2) / m2;
 
-    //cout << tau << " " << h1 << " " << h2 << endl;
+    
     Mat.fill_matrix_another();
-    
 
-
-    
     return 0;
 }
