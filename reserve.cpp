@@ -906,7 +906,7 @@ public:
 
         if (norm == "C")
             {
-                resid_V2 = resid_V1 = resid_G = -fabs(VEC1[0]);
+                resid_V2 = resid_V1 = resid_G = -1;
                 for (int i = 0; i < K; i++)
                 {
                     if (fabs (VEC1[i] - VEC2[i]) > resid_G)
@@ -1019,78 +1019,80 @@ public:
 
                     
                     
-                    for (int i = 0; i <= m1/3; i++)// (res - true)_x2
-                    {
-                        for (int j = 0; j < m2; j++)
-                        {
-                            int k1 = ij2k(i, j);
-                            int k2 = ij2k(i, j+1);
-                            
-                            t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2
-                                * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2;
-                            t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2
-                                * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2;
-                            t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2
-                                * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2;
-                        }
-                    }
-
-                    for (int i = m1/3 + 1; i <= 2*m1/3; i++)// (res - true)_x2
-                    {
-                        for (int j = m2/3; j < 2*m2/3; j++)
-                        {
-                            int k1 = ij2k(i, j);
-                            int k2 = ij2k(i, j+1);
-                            
-                            t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2
-                                * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2;
-                            t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2
-                                * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2;
-                            t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2
-                                * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2;
-                        }
-                    }
-
-                    for (int i = 0; i < m1/3; i++)// (res - true)_x2
-                    {
-                        for (int j = 0; j <= m2; j++)
-                        {
-                            int k1 = ij2k(i, j);
-                            int k2 = ij2k(i+1, j);
-                            
-                            t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1
-                                * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1;
-                            t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1 
-                                * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1;
-                            t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1
-                                * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1;
-                        }
-                    }
-
-                    for (int i = m1/3; i < 2*m1/3; i++)// (res - true)_x2
-                    {
-                        for (int j = m2/3; j <= 2*m2/3; j++)
-                        {
-                            int k1 = ij2k(i, j);
-                            int k2 = ij2k(i+1, j);
-                            
-                            t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1
-                                * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1;
-                            t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1 
-                                * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1;
-                            t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1
-                                * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1;
-                        }
-                    }
+                    
 
 
                     
                 }
+                for (int i = 0; i <= m1/3; i++)// (res - true)_x2
+                {
+                    for (int j = 0; j < m2; j++)
+                    {
+                        int k1 = ij2k(i, j);
+                        int k2 = ij2k(i, j+1);
+                        
+                        t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2
+                            * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2;
+                        t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2
+                            * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2;
+                        t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2
+                            * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2;
+                    }
+                }
+
+                for (int i = m1/3 + 1; i <= 2*m1/3; i++)// (res - true)_x2
+                {
+                    for (int j = m2/3; j < 2*m2/3; j++)
+                    {
+                        int k1 = ij2k(i, j);
+                        int k2 = ij2k(i, j+1);
+                        
+                        t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2
+                            * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h2;
+                        t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2
+                            * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h2;
+                        t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2
+                            * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h2;
+                    }
+                }
+
+
+                for (int i = 0; i < m1/3; i++)// (res - true)_x1
+                {
+                    for (int j = 0; j <= m2; j++)
+                    {
+                        int k1 = ij2k(i, j);
+                        int k2 = ij2k(i+1, j);
+                        
+                        t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1
+                            * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1;
+                        t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1 
+                            * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1;
+                        t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1
+                            * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1;
+                    }
+                }
+
+                for (int i = m1/3; i < 2*m1/3; i++)// (res - true)_x1
+                {
+                    for (int j = m2/3; j <= 2*m2/3; j++)
+                    {
+                        int k1 = ij2k(i, j);
+                        int k2 = ij2k(i+1, j);
+                        
+                        t_G += ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1
+                            * ((VEC1[k1] - VEC2[k1]) - (VEC1[k2] - VEC2[k2])) / h1;
+                        t_V1 += ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1 
+                            * ((VEC1[K+k1] - VEC2[K+k1]) - (VEC1[K+k2] - VEC2[K+k2])) / h1;
+                        t_V2 += ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1
+                            * ((VEC1[2*K+k1] - VEC2[2*K+k1]) - (VEC1[2*K+k2] - VEC2[2*K+k2])) / h1;
+                    }
+                }
                 
 
-                resid_G += t_G;
-                resid_V1 += t_V1;
-                resid_V2 += t_V2;
+                resid_G += t_G*0.01;
+                resid_V1 += t_V1*0.01;
+                resid_V2 += t_V2*0.01;
 
                 resid_G = sqrt(resid_G*h1*h2);
                 resid_V1 = sqrt(resid_V1*h1*h2);
